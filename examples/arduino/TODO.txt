@@ -1,0 +1,15 @@
+This example has been copied from another project. It doesn't
+work just yet...
+
+The idea is to be able to drop an arduino sketch into the
+'sketch' directory, and be able to build with minimal
+configuration.
+
+to do:
+- build core from source in arduino dir - don't need to copy
+  core source to this project
+
+- create 'arduino_utils' in doit_tools, comprising most of the
+  information currently in this example's dodo.py file. Will need
+  functions like arduino_utils.set_arduino_path(),
+  arduino_utils.set_hardware(), etc...
