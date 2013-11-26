@@ -31,11 +31,12 @@ def find(path, patterns, exclude_patterns=[], recursive=True):
                     if fnmatch.fnmatch(filename, pattern):
                         matches.append(os.path.join(root, filename))
     else:
-        for path in os.listdir(path):
-            if os.path.isfile(path):
+        for item in os.listdir(path):
+            item = os.path.join(path, item)
+            if os.path.isfile(item):
                 for pattern in patterns:
-                    if fnmatch.fnmatch(path, pattern):
-                        matches.append(os.path.join(path))
+                    if fnmatch.fnmatch(item, pattern):
+                        matches.append(item)
 
     # remove any paths that match the exclude pattern(s)
     def is_excluded(filename):
