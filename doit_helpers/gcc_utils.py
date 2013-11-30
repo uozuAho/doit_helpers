@@ -30,7 +30,7 @@ def get_dependency_dict(path, depfile_pattern='*.d'):
     """ Search path and all subdirectories for dependency files,
         return a dictionary of target : [dependencies] pairs
     """
-    depfiles = file_utils.find(path, depfile_pattern)
+    depfiles = file_utils.find(path, depfile_pattern, search_subdirs=True)
     deps = {}
     for dep in depfiles:
         deps.update(read_dependency_file(dep))

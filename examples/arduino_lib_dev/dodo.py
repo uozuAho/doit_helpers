@@ -45,10 +45,8 @@ class BuildData:
         for path in SOURCE_DIRS:
             self.c_sources += file_utils.find(path, '*.c')
             self.cpp_sources += file_utils.find(path, ['*.cpp', '*.ino'])
-
         self.objs = [self.get_obj_path(x) for x in self.c_sources + self.cpp_sources]
         self.objs += [ARDUINO_ENV.core_lib_output_path]
-
         self.deps = gcc_utils.get_dependency_dict(BUILD_DIR)
 
     def get_obj_path(self, source_path):

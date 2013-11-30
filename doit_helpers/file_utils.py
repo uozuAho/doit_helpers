@@ -30,7 +30,7 @@ def find(path, patterns, exclude_patterns=[], search_subdirs=False):
                 for pattern in patterns:
                     if fnmatch.fnmatch(filename, pattern):
                         matches.append(os.path.join(root, filename))
-    else:
+    elif os.path.exists(path):
         for item in os.listdir(path):
             item = os.path.join(path, item)
             if os.path.isfile(item):

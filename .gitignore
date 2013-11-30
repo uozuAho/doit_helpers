@@ -1,3 +1,4 @@
+# Python
 *.py[cod]
 
 # C extensions
@@ -34,3 +35,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# doit
+*.doit.db
+
+# Arduino lib example
+examples/arduino_lib_dev/arduino_lib/*
