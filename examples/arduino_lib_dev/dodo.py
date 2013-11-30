@@ -24,47 +24,47 @@ ARDUINO_ENV = arduino_utils.ArduinoEnv(PROJECT_NAME, ARDUINO_ROOT, BUILD_DIR)
 
 SERIAL_PORT = 'COM5'
 
-SOURCE_DIRS = [
-    'arduino_lib',
-]
-
 INCLUDE_DIRS = [
     'arduino_lib',
 ]
 
 INCLUDE_DIRS += ARDUINO_ENV.cincludes
 
+SOURCE_DIRS = [
+    'arduino_lib',
+]
 
-# ---------------------------------------------------------------------
-# data
 
-class BuildData:
-    def __init__(self):
-        self.c_sources = []
-        self.cpp_sources = []
-        for path in SOURCE_DIRS:
-            self.c_sources += file_utils.find(path, '*.c')
-            self.cpp_sources += file_utils.find(path, ['*.cpp', '*.ino'])
-        self.objs = [self.get_obj_path(x) for x in self.c_sources + self.cpp_sources]
-        self.objs += [ARDUINO_ENV.core_lib_output_path]
-        self.deps = gcc_utils.get_dependency_dict(BUILD_DIR)
+def src_to_obj_path(src_path):
+    """ Source file path to object file path conversion """
+    return os.path.join(OBJ_DIR, os.path.basename(src_path) + '.o')
 
-    def get_obj_path(self, source_path):
-        return os.path.join(OBJ_DIR, os.path.basename(source_path) + '.o')
 
-    def get_dep_path(self, source_path):
-        return os.path.join(OBJ_DIR, os.path.basename(source_path) + '.d')
+def src_to_dep_path(src_path):
+    """ Source file path to dependency file path conversion """
+    return os.path.join(OBJ_DIR, os.path.basename(src_path) + '.d')
 
-build_data = BuildData()
+# Add all source files from SOURCE DIRS
+C_SOURCES = []
+CPP_SOURCES = []
+for path in SOURCE_DIRS:
+    C_SOURCES += file_utils.find(path, '*.c')
+    CPP_SOURCES += file_utils.find(path, ['*.cpp', '*.ino'])
+
+# Manually add source files (ADD LIBRARY EXAMPLE HERE)
+CPP_SOURCES += ['arduino_lib/examples/goggles/goggles.pde']
+
+# C source file dependency map
+DEPS = gcc_utils.get_dependency_dict(BUILD_DIR)
 
 
 # ---------------------------------------------------------------------
 # utilities
 
 def get_source_dependencies(source):
-    obj = build_data.get_obj_path(source)
-    if obj in build_data.deps:
-        return build_data.deps[obj]
+    obj = src_to_obj_path(source)
+    if obj in DEPS:
+        return DEPS[obj]
     else:
         return [source]
 
@@ -94,9 +94,9 @@ def task_build_arduino_core():
 
 
 def task_compile_c():
-    for source in build_data.c_sources:
-        obj = build_data.get_obj_path(source)
-        dep = build_data.get_dep_path(source)
+    for source in C_SOURCES:
+        obj = src_to_obj_path(source)
+        dep = src_to_dep_path(source)
         yield {
             'name': obj,
             'actions': [(create_folder, [os.path.dirname(obj)]),
@@ -108,9 +108,9 @@ def task_compile_c():
 
 
 def task_compile_cpp():
-    for source in build_data.cpp_sources:
-        obj = build_data.get_obj_path(source)
-        dep = build_data.get_dep_path(source)
+    for source in CPP_SOURCES:
+        obj = src_to_obj_path(source)
+        dep = src_to_dep_path(source)
         yield {
             'name': obj,
             'actions': [(create_folder, [os.path.dirname(obj)]),
@@ -122,7 +122,10 @@ def task_compile_cpp():
 
 
 def task_build_exe():
-    for task in ARDUINO_ENV.get_build_exe_tasks(PROJECT_NAME, build_data.objs):
+    objs = [src_to_obj_path(x) for x in C_SOURCES]
+    objs += [src_to_obj_path(x) for x in CPP_SOURCES]
+    objs += [ARDUINO_ENV.core_lib_output_path]
+    for task in ARDUINO_ENV.get_build_exe_tasks(PROJECT_NAME, objs):
         yield task
 
 
