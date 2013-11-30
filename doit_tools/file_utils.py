@@ -2,7 +2,7 @@ import fnmatch
 import os
 
 
-def find(path, patterns, exclude_patterns=[], recursive=True):
+def find(path, patterns, exclude_patterns=[], recursive=False):
     """ Return a list of files under the given path that match any
         of the given patterns, and doesn't match any of the exclude
         patterns. Uses Unix filename patterns (fnmatch). Searches

@@ -3,9 +3,9 @@ import sys
 from doit.tools import create_folder
 
 sys.path.append('../..')
-from doit_tools import arduino_utils
-from doit_tools import file_utils
-from doit_tools import gcc_utils
+from doit_helpers import arduino_utils
+from doit_helpers import file_utils
+from doit_helpers import gcc_utils
 
 DOIT_CONFIG = {'default_tasks': ['build_exe']}
 
