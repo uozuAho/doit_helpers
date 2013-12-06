@@ -1,4 +1,125 @@
+import copy
+import os
+from doit.tools import create_folder
+
 import file_utils
+
+#------------------------------------------------------------------------
+# constants
+
+DEFAULT_ENV = {
+    'c compiler': 'gcc',
+    'c++ compiler': 'gcc',
+    'linker': 'gcc',
+
+    'c preprocessor defs': [],
+    'c++ preprocessor defs': [],
+
+    'c compiler flags': ['-c', '-MMD'],
+    'c++ compiler flags': ['-c', '-MMD'],
+
+    'c header search paths': [],
+    'c++ header search paths': [],
+
+    'linker script': None,
+    'linker libraries': [],
+    'linker flags': [],
+    'linker library search paths': [],
+}
+
+
+#------------------------------------------------------------------------
+# data
+
+local_env = copy.deepcopy(DEFAULT_ENV)
+
+
+#------------------------------------------------------------------------
+# public functions
+
+def get_env():
+    return local_env
+
+
+def set_env(env):
+    global local_env
+    local_env = env
+
+
+def update_env(env):
+    local_env.update(env)
+
+
+def get_obj_target_paths(sources, build_dir):
+    """ Return the object file destination paths
+        for the given source files """
+    return [_source_to_obj_path(x, build_dir) for x in sources]
+
+
+def get_dep_target_paths(sources, build_dir):
+    """ Return the dependency file destination paths
+        for the given source files """
+    return [_source_to_dep_path(x, build_dir) for x in sources]
+
+
+def get_c_compile_tasks(sources, build_dir):
+    """ Return a list of doit tasks for compiling the given c source files """
+    tasks = []
+    depmap = get_dependency_dict(build_dir)
+    for source in sources:
+        obj = _source_to_obj_path(source, build_dir)
+        dep = _source_to_dep_path(source, build_dir)
+        source_deps = depmap.get(source, [source])
+        tasks.append({
+            'name': obj,
+            'actions': [(create_folder, [os.path.dirname(obj)]),
+                        get_compile_cmd_str(source, obj,
+                                            compiler=local_env['c compiler'],
+                                            defs=local_env['c preprocessor defs'],
+                                            includes=local_env['c header search paths'],
+                                            flags=local_env['c compiler flags'])],
+            'targets': [obj, dep],
+            'file_dep': source_deps,
+            'clean': True
+        })
+    return tasks
+
+
+def get_cpp_compile_tasks(sources, build_dir):
+    """ Return a list of doit tasks for compiling the given c++ source files """
+    tasks = []
+    depmap = get_dependency_dict(build_dir)
+    for source in sources:
+        obj = _source_to_obj_path(source, build_dir)
+        dep = _source_to_dep_path(source, build_dir)
+        source_deps = depmap.get(source, [source])
+        tasks.append({
+            'name': obj,
+            'actions': [(create_folder, [os.path.dirname(obj)]),
+                        get_compile_cmd_str(source, obj,
+                                            compiler=local_env['c++ compiler'],
+                                            defs=local_env['c++ preprocessor defs'],
+                                            includes=local_env['c++ header search paths'],
+                                            flags=local_env['c++ compiler flags'])],
+            'targets': [obj, dep],
+            'file_dep': source_deps,
+            'clean': True
+        })
+    return tasks
+
+
+def get_link_exe_tasks(objs, target):
+    return [{
+        'name': target,
+        'actions': [get_link_cmd_str(target, objs,
+                                     linker=local_env['linker'],
+                                     libdirs=local_env['linker library search paths'],
+                                     libs=local_env['linker libraries'],
+                                     flags=local_env['linker flags'])],
+        'file_dep': objs,
+        'targets': [target],
+        'clean': True
+    }]
 
 
 def get_compile_cmd_str(src, obj, compiler='gcc', defs=[], includes=[], flags=[]):
@@ -70,6 +191,19 @@ def read_dependency_file(path):
                 current_deps = get_deps_from_string(remainder)
     target_dict[current_target] = current_deps
     return target_dict
+
+
+#------------------------------------------------------------------------
+# private functions
+
+def _source_to_obj_path(src, build_dir):
+    src_filename = os.path.basename(src)
+    return os.path.join(build_dir, 'obj', src_filename) + '.o'
+
+
+def _source_to_dep_path(src, build_dir):
+    src_filename = os.path.basename(src)
+    return os.path.join(build_dir, 'obj', src_filename) + '.d'
 
 
 def _arg_list_to_command_string(arg_list):
