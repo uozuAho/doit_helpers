@@ -1,77 +1,23 @@
 import os
-import gcc_utils
-import file_utils
 from doit.tools import create_folder
 
+from .. import gcc_utils
+from .. import file_utils
 
-COMMON_COMPILE_FLAGS = [
-    '-c',
-    '-g',
-    '-Os',
-    '-Wall',
-    '-ffunction-sections',
-    '-fdata-sections',
-    '-mmcu=atmega328p',
-    '-MMD',
-]
-
-C_FLAGS = COMMON_COMPILE_FLAGS + [
-    '-x c',     # ensure c files are processed as c files!
-]
-
-C_DEFS = [
-    'F_CPU=16000000L',
-    'USB_VID=null',
-    'USB_PID=null',
-    'ARDUINO=105',
-]
-
-CPP_FLAGS = COMMON_COMPILE_FLAGS + [
-    '-fno-exceptions',
-    '-x c++',     # stops .ino files being processed as objects
-]
-
-CPP_DEFS = C_DEFS
-
-LINKER_FLAGS = [
-    '-Os',
-    '-Wl,--gc-sections',
-    '-mmcu=atmega328p',
-]
-
-LINKER_LIBS = [
-    'm'
-]
-
-OBJCOPY_EEPROM_FLAGS = [
-    '-O',
-    'ihex',
-    '-j',
-    '.eeprom',
-    '--set-section-flags=.eeprom=alloc,load',
-    '--no-change-warnings',
-    '--change-section-lma',
-    '.eeprom=0',
-]
-
-OBJCOPY_FLASH_FLAGS = [
-    '-O',
-    'ihex',
-    '-R',
-    '.eeprom',
-]
-
-AVRDUDE_FLAGS = [
-    '-patmega328p',
-    '-carduino',
-    '-b115200',
-    '-D'
-]
+import uno
+import pro_mini_8mhz
 
 
 class ArduinoEnv:
 
-    def __init__(self, proj_name, arduino_path, build_dir):
+    def __init__(self, proj_name, arduino_path, build_dir, hardware):
+        if hardware == 'uno':
+            self.hardware_env = uno
+        elif hardware == 'pro_mini_8mhz':
+            self.hardware_env = pro_mini_8mhz
+        else:
+            raise Exception('Unknown arduino hardware: ' + hardware)
+
         self.proj_name = proj_name
         self.build_dir = build_dir
         self.root_path = arduino_path
@@ -92,18 +38,18 @@ class ArduinoEnv:
         self.avrdude_conf = os.path.join(
             self.root_path, 'hardware', 'tools', 'avr', 'etc', 'avrdude.conf')
 
-        self.cflags = C_FLAGS
-        self.cdefs = C_DEFS
+        self.cflags = self.hardware_env.C_FLAGS
+        self.cdefs = self.hardware_env.C_DEFS
         self.cincludes = [
             self.core_path,
             os.path.join(
                 self.root_path, 'hardware', 'arduino', 'variants', 'standard')
         ]
-        self.cppflags = CPP_FLAGS
-        self.cppdefs = CPP_DEFS
+        self.cppflags = self.hardware_env.CPP_FLAGS
+        self.cppdefs = self.hardware_env.CPP_DEFS
         self.cppincludes = self.cincludes
-        self.ldflags = LINKER_FLAGS
-        self.ldlibs = LINKER_LIBS
+        self.ldflags = self.hardware_env.LINKER_FLAGS
+        self.ldlibs = self.hardware_env.LINKER_LIBS
         self.ldincludes = []
 
         self.core_csources = file_utils.find(self.core_path, '*.c')
@@ -136,13 +82,15 @@ class ArduinoEnv:
 
     def get_build_exe_tasks(self, name, objs):
         tasks = self._get_build_elf_tasks(objs, self.elf_target)
-        tasks += self._get_build_eeprom_binary_tasks(self.elf_target, self.eep_target)
-        tasks += self._get_build_flash_binary_tasks(self.elf_target, self.hex_target)
+        tasks += self._get_build_eeprom_binary_tasks(
+            self.elf_target, self.eep_target)
+        tasks += self._get_build_flash_binary_tasks(
+            self.elf_target, self.hex_target)
         tasks += self._get_print_size_task(self.elf_target)
         return tasks
 
     def get_upload_task(self, serial_port):
-        avrdude_flags = AVRDUDE_FLAGS
+        avrdude_flags = self.hardware_env.AVRDUDE_FLAGS
         avrdude_flags += ['-C' + self.avrdude_conf] + ['-P' + serial_port]
         avrdude_flags += ['-Uflash:w:' + self.hex_target + ':i']
         avrdude_cmd = ' '.join([self.avrdude] + avrdude_flags)
@@ -241,7 +189,8 @@ class ArduinoEnv:
         }]
 
     def _get_build_eeprom_binary_tasks(self, source, dest):
-        objcopy_cmd = ' '.join([self.objcopy] + OBJCOPY_EEPROM_FLAGS + [source, dest])
+        objcopy_cmd = ' '.join(
+            [self.objcopy] + self.hardware_env.OBJCOPY_EEPROM_FLAGS + [source, dest])
         return [{
             'name': dest,
             'actions': [objcopy_cmd],
@@ -251,7 +200,8 @@ class ArduinoEnv:
         }]
 
     def _get_build_flash_binary_tasks(self, source, dest):
-        objcopy_cmd = ' '.join([self.objcopy] + OBJCOPY_FLASH_FLAGS + [source, dest])
+        objcopy_cmd = ' '.join(
+            [self.objcopy] + self.hardware_env.OBJCOPY_FLASH_FLAGS + [source, dest])
         return [{
             'name': dest,
             'actions': [objcopy_cmd],
