@@ -3,7 +3,7 @@ import sys
 from doit.tools import create_folder
 
 sys.path.append('../..')
-from doit_helpers import arduino_utils
+from doit_helpers.arduino import env as arduino_env
 from doit_helpers import file_utils
 from doit_helpers import gcc_utils
 
@@ -20,7 +20,7 @@ OBJ_DIR = os.path.join(BUILD_DIR, 'obj')
 
 ARDUINO_ROOT = 'D:\\programs_win\\arduino-1.0.5'
 
-ARDUINO_ENV = arduino_utils.ArduinoEnv(PROJECT_NAME, ARDUINO_ROOT, BUILD_DIR)
+ARDUINO_ENV = arduino_env.ArduinoEnv(PROJECT_NAME, ARDUINO_ROOT, BUILD_DIR, 'uno')
 
 SERIAL_PORT = 'COM5'
 
