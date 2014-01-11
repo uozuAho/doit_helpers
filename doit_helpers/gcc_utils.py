@@ -120,6 +120,18 @@ class GccEnv:
             'clean': True
         }]
 
+    def __str__(self):
+        """ Pretty-print all environment varialbes """
+        out_str = ''
+        for key in sorted(self.variables):
+            out_str += str(key) + ':\n'
+            if not hasattr(self.variables[key], '__iter__') or type(self.variables[key]) is str:
+                out_str += '    ' + str(self.variables[key]) + '\n'
+            else:
+                for item in self.variables[key]:
+                    out_str += '    ' + str(item) + '\n'
+        return out_str
+
     #------------------------------------------------
     # private
 
@@ -132,10 +144,12 @@ class GccEnv:
         return os.path.join(build_dir, 'obj', src_filename) + '.d'
 
     def _get_all_objs(self):
-        all_sources = self.variables['c source files'] + self.variables['c++ source files']
+        all_sources = self.variables[
+            'c source files'] + self.variables['c++ source files']
         objs = []
         for src in all_sources:
-            objs.append(self._source_to_obj_path(src, self.variables['build directory']))
+            objs.append(self._source_to_obj_path(
+                src, self.variables['build directory']))
         return objs
 
 
