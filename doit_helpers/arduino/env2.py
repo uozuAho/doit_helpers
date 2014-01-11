@@ -17,6 +17,8 @@ class ArduinoEnv():
 
         self.arduino_core_env = gcc_utils.GccEnv(build_dir + '/core')
         self.arduino_core_env.variables.update(hardware_env)
+        self.arduino_core_env.variables[
+            'core lib output path'] = build_dir + '/core/core.a'
 
         self.user_env = gcc_utils.GccEnv(build_dir)
         self.user_env.variables['project name'] = proj_name
@@ -44,7 +46,21 @@ class ArduinoEnv():
     def _get_build_core_tasks(self):
         tasks = self.arduino_core_env.get_c_compile_tasks()
         tasks += self.arduino_core_env.get_cpp_compile_tasks()
+        tasks += [self._get_archive_core_task()]
         return tasks
+
+    def _get_archive_core_task(self):
+        objs = self.arduino_core_env.get_all_objs()
+        archiver = self.arduino_core_env.variables['archiver']
+        output = self.arduino_core_env.variables['core lib output path']
+        archive_command = archiver + ' rcs ' + output + ' ' + ' '.join(objs)
+        return {
+            'name': output,
+            'actions': [archive_command],
+            'targets': [output],
+            'file_dep': objs,
+            'clean': True
+        }
 
 
 def get_hardware_env(arduino_path, hardware):

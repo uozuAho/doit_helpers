@@ -115,10 +115,20 @@ class GccEnv:
                                              'linker libraries'],
                                          flags=self.variables[
                                              'linker flags'])],
-            'file_dep': self._get_all_objs(),
+            'file_dep': self.get_all_objs(),
             'targets': [exe_output],
             'clean': True
         }]
+
+    def get_all_objs(self):
+        """ Return a list of all compiler output objects (.o files) """
+        all_sources = self.variables[
+            'c source files'] + self.variables['c++ source files']
+        objs = []
+        for src in all_sources:
+            objs.append(self._source_to_obj_path(
+                src, self.variables['build directory']))
+        return objs
 
     def __str__(self):
         """ Pretty-print all environment varialbes """
@@ -142,15 +152,6 @@ class GccEnv:
     def _source_to_dep_path(self, src, build_dir):
         src_filename = os.path.basename(src)
         return os.path.join(build_dir, 'obj', src_filename) + '.d'
-
-    def _get_all_objs(self):
-        all_sources = self.variables[
-            'c source files'] + self.variables['c++ source files']
-        objs = []
-        for src in all_sources:
-            objs.append(self._source_to_obj_path(
-                src, self.variables['build directory']))
-        return objs
 
 
 def get_compile_cmd_str(src, obj, compiler='gcc', defs=[], includes=[], flags=[]):

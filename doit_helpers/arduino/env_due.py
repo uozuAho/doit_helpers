@@ -1,4 +1,4 @@
-import glob
+from .. import file_utils
 
 
 def get_env(arduino_path):
@@ -45,7 +45,9 @@ def get_env(arduino_path):
             arduino_path + '/hardware/arduino/sam/variants/arduino_due_x',
         ],
 
-        'c source files': glob.glob(arduino_path + '/hardware/arduino/sam/cores/arduino/*.c'),
+        'c source files': file_utils.find(
+            arduino_path + '/hardware/arduino/sam/cores/arduino', ['*.c'],
+            search_subdirs=True),
 
         # -------------------------------
         # c++
@@ -88,8 +90,10 @@ def get_env(arduino_path):
             arduino_path + '/hardware/arduino/sam/variants/arduino_due_x',
         ],
 
-        'c++ source files': glob.glob(arduino_path + '/hardware/arduino/sam/cores/arduino/*.cpp') +
-                            glob.glob(arduino_path + '/hardware/arduino/sam/variants/arduino_due_x/variant.cpp'),
+        'c++ source files': file_utils.find(
+            arduino_path + '/hardware/arduino/sam/cores/arduino', ['*.cpp'],
+            search_subdirs=True) +
+            [arduino_path + '/hardware/arduino/sam/variants/arduino_due_x/variant.cpp'],
 
         # -------------------------------
         # linker
