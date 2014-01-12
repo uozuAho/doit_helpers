@@ -107,7 +107,7 @@ class GccEnv:
     def get_link_exe_tasks(self, exe_output):
         return [{
             'name': exe_output,
-            'actions': [get_link_cmd_str(exe_output, self._get_all_objs(),
+            'actions': [get_link_cmd_str(exe_output, self.get_all_objs(),
                                          linker=self.variables['linker'],
                                          libdirs=self.variables[
                                              'linker library search paths'],
