@@ -1,4 +1,4 @@
-doit_tools
-==========
+doit_helpers
+============
 
-Extra tools not included in doit (http://pydoit.org/) (yet)
+Extra utilities not included in doit (http://pydoit.org/)
