@@ -55,7 +55,7 @@ class GccEnv:
                 source, self.variables['build directory'])
             dep = self._source_to_dep_path(
                 source, self.variables['build directory'])
-            source_deps = depmap.get(source, [source])
+            source_deps = depmap.get(obj, [source])
             tasks.append({
                 'name': obj,
                 'actions': [(create_folder, [os.path.dirname(obj)]),
@@ -85,7 +85,7 @@ class GccEnv:
                 source, self.variables['build directory'])
             dep = self._source_to_dep_path(
                 source, self.variables['build directory'])
-            source_deps = depmap.get(source, [source])
+            source_deps = depmap.get(obj, [source])
             tasks.append({
                 'name': obj,
                 'actions': [(create_folder, [os.path.dirname(obj)]),
