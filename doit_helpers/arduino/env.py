@@ -24,7 +24,7 @@ class ArduinoEnv:
         self.bin_path = os.path.join(
             self.root_path, 'hardware', 'tools', 'avr', 'bin')
         self.core_path = os.path.join(
-            self.root_path, 'hardware', 'arduino', 'cores', 'arduino')
+            self.root_path, 'hardware', 'arduino', 'avr', 'cores', 'arduino')
         self.libraries_path = os.path.join(self.root_path, 'libraries')
 
         self.c_compiler = os.path.join(self.bin_path, 'avr-gcc')
@@ -43,7 +43,7 @@ class ArduinoEnv:
         self.cincludes = [
             self.core_path,
             os.path.join(
-                self.root_path, 'hardware', 'arduino', 'variants', 'standard')
+                self.root_path, 'hardware', 'arduino', 'avr', 'variants', 'standard')
         ]
         self.cppflags = self.hardware_env.CPP_FLAGS
         self.cppdefs = self.hardware_env.CPP_DEFS
